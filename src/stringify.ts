@@ -48,7 +48,11 @@ function stringifyKeyValue(key: string, value: any, { nested }: Options): string
     return `{${nested ? '.' : ''}${key}}\n${inner}${inner && '\n'}{}`;
   }
 
-  return `${key}: ${value}`;
+  if (typeof value === 'string') {
+    return `${key}: ${value}${value.includes('\n') ? '\n:end' : ''}`;
+  }
+
+  return '';
 }
 
 function stringifyStringArray(array: string[]): string {

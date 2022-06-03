@@ -308,6 +308,16 @@ date: June 4th, 2008
       ],
     },
   ],
+  [
+    `key: value
+ More value
+
+Even more value
+:end`,
+    {
+      key: 'value\n More value\n\nEven more value',
+    },
+  ],
 ];
 
 const cases = [...specialCases, ...invertibleCases];
