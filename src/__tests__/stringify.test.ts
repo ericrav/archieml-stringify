@@ -318,6 +318,30 @@ Even more value
       key: 'value\n More value\n\nEven more value',
     },
   ],
+  [
+    `{arrays}
+[.complex]
+key: value
+more value
+:end
+[]
+[.simple]
+* value
+more value
+:end
+[]
+{}`,
+    {
+      arrays: {
+        complex: [
+          {
+            key: 'value\nmore value',
+          },
+        ],
+        simple: ['value\nmore value'],
+      },
+    },
+  ],
 ];
 
 const cases = [...specialCases, ...invertibleCases];

@@ -48,15 +48,16 @@ function stringifyKeyValue(key: string, value: any, { nested }: Options): string
     return `{${nested ? '.' : ''}${key}}\n${inner}${inner && '\n'}{}`;
   }
 
-  if (typeof value === 'string') {
-    return `${key}: ${value}${value.includes('\n') ? '\n:end' : ''}`;
-  }
+  return `${key}: ${stringifyValue(value)}`;
+}
 
-  return '';
+function stringifyValue(value: any) {
+  const str = String(value);
+  return `${str}${str.includes('\n') ? '\n:end' : ''}`;
 }
 
 function stringifyStringArray(array: string[]): string {
-  return array.map((str) => `* ${str}`).join('\n');
+  return array.map((str) => `* ${stringifyValue(str)}`).join('\n');
 }
 
 function stringifyComplexArray(array: Record<string, any>[]): string {
