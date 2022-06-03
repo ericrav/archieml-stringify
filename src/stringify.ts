@@ -20,19 +20,27 @@ export function stringify(input: any, options: Options = {}): string {
 function stringifyKeyValue(key: string, value: any, { nested }: Options): string {
   if (!key) return '';
 
-  if (/\s/.test(key)) {
+  if (hasWhiteSpace(key)) {
     if (value === COMMENT) return key;
     return '';
   }
 
   if (Array.isArray(value)) {
-    const isStringArray = typeof value[0] === 'string';
+    let prefix = nested ? '.' : '';
     const inner = (() => {
-      if (isStringArray) return stringifyStringArray(value.filter((item) => typeof item === 'string'));
+      const isStringArray = typeof value[0] === 'string';
+      if (isStringArray) {
+        return stringifyStringArray(value.filter((item) => typeof item === 'string'));
+      }
+
+      if (isFreeformArrayObject(value[0])) {
+        prefix = '+';
+        return stringifyFreeformArray(value.filter(isFreeformArrayObject));
+      }
 
       return stringifyComplexArray(value.filter((item) => typeof item === 'object'));
     })();
-    return `[${nested ? '.' : ''}${key}]\n${inner}${inner && '\n'}[]`;
+    return `[${prefix}${key}]\n${inner}${inner && '\n'}[]`;
   }
 
   if (typeof value === 'object') {
@@ -52,4 +60,19 @@ function stringifyComplexArray(array: Record<string, any>[]): string {
   return array
     .filter((obj) => Object.getOwnPropertyNames(obj)[0] === firstKey)
     .map((obj) => stringify(obj, { nested: true })).join('\n\n');
+}
+
+function isFreeformArrayObject(item: any): boolean {
+  return typeof item === 'object'
+    && typeof item.type === 'string'
+    && !(hasWhiteSpace(item.type))
+    && typeof item.value === 'string';
+}
+
+function stringifyFreeformArray(array: { type: string; value: string }[]): string {
+  return array.map(({ type, value }) => stringify({ [type]: value })).join('\n');
+}
+
+function hasWhiteSpace(key: string) {
+  return /\s/.test(key);
 }

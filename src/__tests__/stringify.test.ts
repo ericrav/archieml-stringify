@@ -207,6 +207,49 @@ name: Tuesday
       ],
     },
   ],
+  [
+    `[+books]
+kicker: Books you should read
+score: ★★★★★!!!
+title: Wuthering Heights
+author: Emily Brontë
+title: Middlemarch
+author: George Eliot
+score: ★★★★☆
+[]`,
+    {
+      books: [
+        {
+          type: 'kicker',
+          value: 'Books you should read',
+        },
+        {
+          type: 'score',
+          value: '★★★★★!!!',
+        },
+        {
+          type: 'title',
+          value: 'Wuthering Heights',
+        },
+        {
+          type: 'author',
+          value: 'Emily Brontë',
+        },
+        {
+          type: 'title',
+          value: 'Middlemarch',
+        },
+        {
+          type: 'author',
+          value: 'George Eliot',
+        },
+        {
+          type: 'score',
+          value: '★★★★☆',
+        },
+      ],
+    },
+  ],
 ];
 
 const cases = [...specialCases, ...invertibleCases];
