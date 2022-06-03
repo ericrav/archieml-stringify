@@ -157,6 +157,56 @@ february: 1
       },
     },
   ],
+  [
+    `[array]
+[.subarray]
+[.subsubarray]
+key: value
+[]
+[]
+[]`,
+    {
+      array: [
+        {
+          subarray: [
+            {
+              subsubarray: [
+                {
+                  key: 'value',
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  ],
+  [
+    `[days]
+name: Monday
+[.tasks]
+* Clean dishes
+* Pick up room
+[]
+
+name: Tuesday
+[.tasks]
+* Buy milk
+[]
+[]`,
+    {
+      days: [
+        {
+          name: 'Monday',
+          tasks: ['Clean dishes', 'Pick up room'],
+        },
+        {
+          name: 'Tuesday',
+          tasks: ['Buy milk'],
+        },
+      ],
+    },
+  ],
 ];
 
 const cases = [...specialCases, ...invertibleCases];
