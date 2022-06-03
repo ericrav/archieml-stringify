@@ -1,6 +1,9 @@
 {
   "name": "archieml-stringify",
   "packageManager": "yarn@3.2.1",
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "dev": "rollup -c -w",
     "build": "rollup -c",
