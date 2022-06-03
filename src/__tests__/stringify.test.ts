@@ -250,6 +250,25 @@ score: ★★★★☆
       ],
     },
   ],
+  [
+    `[+text]
+I can type words here...
+
+And separate them into different paragraphs without tags.
+[]`,
+    {
+      text: [
+        {
+          type: 'text',
+          value: 'I can type words here...',
+        },
+        {
+          type: 'text',
+          value: 'And separate them into different paragraphs without tags.',
+        },
+      ],
+    },
+  ],
 ];
 
 const cases = [...specialCases, ...invertibleCases];

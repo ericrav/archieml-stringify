@@ -70,7 +70,14 @@ function isFreeformArrayObject(item: any): boolean {
 }
 
 function stringifyFreeformArray(array: { type: string; value: string }[]): string {
-  return array.map(({ type, value }) => stringify({ [type]: value })).join('\n');
+  return array.map(({ type, value }, i) => {
+    if (type === 'text') {
+      const isLast = i === array.length - 1;
+      return `${value}${isLast ? '' : '\n'}`;
+    }
+
+    return stringify({ [type]: value });
+  }).join('\n');
 }
 
 function hasWhiteSpace(key: string) {
