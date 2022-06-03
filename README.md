@@ -1,5 +1,10 @@
 # ArchieML Stringify
 
+<a href="https://www.npmjs.com/package/archieml-stringify">
+  <img src="https://img.shields.io/npm/v/archieml-stringify">
+</a>
+
+
 Stringify a JS object into a string that can be parsed as [ArchieML](http://archieml.org/) back into your original object. This can be useful for generating ArchieML templates that can be copy/pasted into a Google Doc.
 
 ## Installation
