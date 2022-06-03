@@ -1342,6 +1342,7 @@ __metadata:
     "@types/node": ^17.0.21
     "@typescript-eslint/eslint-plugin": ^5.13.0
     "@typescript-eslint/parser": ^5.13.0
+    archieml: ^0.5.0
     eslint: ^8.10.0
     eslint-config-airbnb-base: ^15.0.0
     eslint-config-airbnb-typescript: ^16.1.0
@@ -1357,6 +1358,13 @@ __metadata:
     typescript: ^4.6.2
   languageName: unknown
   linkType: soft
+
+"archieml@npm:^0.5.0":
+  version: 0.5.0
+  resolution: "archieml@npm:0.5.0"
+  checksum: 87a7c3f9cae764ed108b05178674e9d03e1e99a4d31cc0b56d2e682f224ba3a66ca87130b770c042eb7836879148e2d4cf0ea9337463ade144580eb1660070aa
+  languageName: node
+  linkType: hard
 
 "are-we-there-yet@npm:^3.0.0":
   version: 3.0.0
