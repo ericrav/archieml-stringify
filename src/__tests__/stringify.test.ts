@@ -12,6 +12,39 @@ const specialCases: [string, any][] = [
     { normal: 'key', 'keys with spaces can be comments': COMMENT },
   ],
   ['scope.key: value', { 'scope.key': 'value' }],
+  [
+    `[strings]
+* Item 1
+* Item 2
+[]`,
+    { strings: ['Item 1', { mixedObjects: 'ignored' }, 'Item 2'] },
+  ],
+  [
+    `[array]
+name: Amanda
+age: 26
+
+name: Tessa
+age: 30
+[]`,
+    {
+      array: [
+        {
+          name: 'Amanda',
+          age: '26',
+        },
+        {
+          differingFirstKey: 'ignored',
+          name: 'Bess',
+          age: '27',
+        },
+        {
+          name: 'Tessa',
+          age: '30',
+        },
+      ],
+    },
+  ],
 ];
 
 const invertibleCases: [string, any][] = [
@@ -44,14 +77,40 @@ other: value
 {second_scope}
 foo: bar
 {}`,
-    { root: 'no scope', scope: { key: 'value', other: 'value' }, second_scope: { foo: 'bar' } },
+    {
+      root: 'no scope',
+      scope: { key: 'value', other: 'value' },
+      second_scope: { foo: 'bar' },
+    },
   ],
   [
     `[strings]
 * Item 1
 * Item 2
 []`,
-    { strings: ['Item 1', 'Item 2'] }],
+    { strings: ['Item 1', 'Item 2'] },
+  ],
+  [
+    `[array]
+name: Amanda
+age: 26
+
+name: Tessa
+age: 30
+[]`,
+    {
+      array: [
+        {
+          name: 'Amanda',
+          age: '26',
+        },
+        {
+          name: 'Tessa',
+          age: '30',
+        },
+      ],
+    },
+  ],
 ];
 
 const cases = [...specialCases, ...invertibleCases];

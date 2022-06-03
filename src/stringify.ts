@@ -22,8 +22,12 @@ function stringifyKeyValue(key: string, value: any): string {
   }
 
   if (Array.isArray(value)) {
-    const isStringArray = value.every((x) => typeof x === 'string');
-    const inner = isStringArray ? stringifyStringArray(value) : stringify(value);
+    const isStringArray = typeof value[0] === 'string';
+    const inner = (() => {
+      if (isStringArray) return stringifyStringArray(value.filter((item) => typeof item === 'string'));
+
+      return stringifyComplexArray(value.filter((item) => typeof item === 'object'));
+    })();
     return `[${key}]\n${inner}${inner && '\n'}[]`;
   }
 
@@ -37,4 +41,11 @@ function stringifyKeyValue(key: string, value: any): string {
 
 function stringifyStringArray(array: string[]): string {
   return array.map((str) => `* ${str}`).join('\n');
+}
+
+function stringifyComplexArray(array: Record<string, any>[]): string {
+  const firstKey = array[0] && Object.getOwnPropertyNames(array[0])[0];
+  return array
+    .filter((obj) => Object.getOwnPropertyNames(obj)[0] === firstKey)
+    .map((obj) => stringify(obj)).join('\n\n');
 }
