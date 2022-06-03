@@ -269,6 +269,45 @@ And separate them into different paragraphs without tags.
       ],
     },
   ],
+  [
+    `[+events]
+header: My Birthday
+date: August 20th, 1990
+{.image}
+src: http://example.com/photo.png
+alt: Family Photo
+{}
+header: High School Graduation
+date: June 4th, 2008
+[]`,
+    {
+      events: [
+        {
+          type: 'header',
+          value: 'My Birthday',
+        },
+        {
+          type: 'date',
+          value: 'August 20th, 1990',
+        },
+        {
+          type: 'image',
+          value: {
+            src: 'http://example.com/photo.png',
+            alt: 'Family Photo',
+          },
+        },
+        {
+          type: 'header',
+          value: 'High School Graduation',
+        },
+        {
+          type: 'date',
+          value: 'June 4th, 2008',
+        },
+      ],
+    },
+  ],
 ];
 
 const cases = [...specialCases, ...invertibleCases];

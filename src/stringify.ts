@@ -66,7 +66,8 @@ function isFreeformArrayObject(item: any): boolean {
   return typeof item === 'object'
     && typeof item.type === 'string'
     && !(hasWhiteSpace(item.type))
-    && typeof item.value === 'string';
+    && item.value !== undefined
+    && item.value !== null;
 }
 
 function stringifyFreeformArray(array: { type: string; value: string }[]): string {
@@ -76,7 +77,7 @@ function stringifyFreeformArray(array: { type: string; value: string }[]): strin
       return `${value}${isLast ? '' : '\n'}`;
     }
 
-    return stringify({ [type]: value });
+    return stringify({ [type]: value }, { nested: true });
   }).join('\n');
 }
 
