@@ -28,9 +28,8 @@ function stringifyKeyValue(key: string, value: any, { nested }: Options): string
   if (Array.isArray(value)) {
     let prefix = nested ? '.' : '';
     const inner = (() => {
-      const isStringArray = typeof value[0] === 'string';
-      if (isStringArray) {
-        return stringifyStringArray(value.filter((item) => typeof item === 'string'));
+      if (isSimpleValue(value[0])) {
+        return stringifyStringArray(value.filter(isSimpleValue));
       }
 
       if (isFreeformArrayObject(value[0])) {
@@ -49,6 +48,10 @@ function stringifyKeyValue(key: string, value: any, { nested }: Options): string
   }
 
   return `${key}: ${stringifyValue(value)}`;
+}
+
+function isSimpleValue(value: any): boolean {
+  return ['string', 'boolean', 'number'].includes(typeof value);
 }
 
 function stringifyValue(value: any) {

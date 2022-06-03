@@ -45,6 +45,46 @@ age: 30
       ],
     },
   ],
+  [
+    `{colors}
+red: #f00
+green: #0f0
+blue: #00f
+{.grays}
+light: #aaa
+dark: #333
+{}
+{}
+[numbers]
+* 1
+* 10
+* 50
+[]
+key: value
+[+freeform]
+name: Archie
+awesome: true
+Lorem ipsum...
+[]`,
+    {
+      colors: {
+        red: '#f00',
+        green: '#0f0',
+        blue: '#00f',
+        grays: {
+          light: '#aaa',
+          dark: '#333',
+        },
+      },
+      numbers: [1, 10, 50],
+      key: 'value',
+      freeform: [
+        { type: 'name', value: 'Archie' },
+        { type: 'awesome', value: true },
+        { type: 'text', value: 'Lorem ipsum...' },
+      ],
+    },
+  ],
 ];
 
 const invertibleCases: [string, any][] = [
