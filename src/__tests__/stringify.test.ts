@@ -111,6 +111,52 @@ age: 30
       ],
     },
   ],
+  [
+    `[array]
+{.scope}
+key: first
+{}
+
+{.scope}
+key: second
+{}
+[]`,
+    { array: [{ scope: { key: 'first' } }, { scope: { key: 'second' } }] },
+  ],
+  [
+    `{colors}
+red: #f00
+green: #0f0
+blue: #00f
+{.numbers}
+one: 1
+ten: 10
+one-hundred: 100
+{}
+nestedKey: nestedValue
+{}
+{months}
+january: 0
+february: 1
+{}`,
+    {
+      colors: {
+        red: '#f00',
+        green: '#0f0',
+        blue: '#00f',
+        numbers: {
+          one: '1',
+          ten: '10',
+          'one-hundred': '100',
+        },
+        nestedKey: 'nestedValue',
+      },
+      months: {
+        january: '0',
+        february: '1',
+      },
+    },
+  ],
 ];
 
 const cases = [...specialCases, ...invertibleCases];
