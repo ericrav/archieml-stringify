@@ -1,3 +1,4 @@
+import type { ArchieMLObj } from 'archieml';
 import { COMMENT } from './COMMENT';
 import { isParsableLine } from './utils';
 
@@ -5,7 +6,7 @@ interface Options {
   nested?: boolean;
 }
 
-export function stringify(input: any, options: Options = {}): string {
+export function stringify(input: unknown, options: Options = {}): string {
   if (!input) return '';
 
   if (typeof input === 'object') {
@@ -18,7 +19,7 @@ export function stringify(input: any, options: Options = {}): string {
   return '';
 }
 
-function stringifyKeyValue(key: string, value: any, { nested }: Options): string {
+function stringifyKeyValue(key: string, value: unknown, { nested }: Options): string {
   if (!key) return '';
 
   if (hasWhiteSpace(key)) {
@@ -51,23 +52,21 @@ function stringifyKeyValue(key: string, value: any, { nested }: Options): string
   return `${key}: ${stringifyValue(value)}`;
 }
 
-function isSimpleValue(value: any): boolean {
+function isSimpleValue(value: unknown): boolean {
   return ['string', 'boolean', 'number'].includes(typeof value);
 }
 
-function stringifyValue(value: any): string {
+function stringifyValue(value: unknown): string {
   const str = String(value);
 
   if (str.includes('\n')) {
-    return `${str}\n:end`;
+    return `${escapeMultilineString(str)}\n:end`;
   }
 
   return str;
 }
 
-function escapeArrayString(str: string): string {
-  // eslint-disable-next-line no-param-reassign
-  str = String(str);
+function escapeMultilineString(str: string): string {
   if (!(str.includes('\n'))) return str;
   return str
     .split('\n')
@@ -76,25 +75,31 @@ function escapeArrayString(str: string): string {
 }
 
 function stringifyStringArray(array: string[]): string {
-  return array.map((str) => `* ${stringifyValue(escapeArrayString(str))}`).join('\n');
+  return array.map((str) => `* ${stringifyValue(str)}`).join('\n');
 }
 
-function stringifyComplexArray(array: Record<string, any>[]): string {
+function stringifyComplexArray(array: Record<string, unknown>[]): string {
   const firstKey = array[0] && Object.getOwnPropertyNames(array[0])[0];
   return array
     .filter((obj) => Object.getOwnPropertyNames(obj)[0] === firstKey)
     .map((obj) => stringify(obj, { nested: true })).join('\n\n');
 }
 
-function isFreeformArrayObject(item: any): boolean {
-  return typeof item === 'object'
-    && typeof item.type === 'string'
-    && !(hasWhiteSpace(item.type))
-    && item.value !== undefined
-    && item.value !== null;
+interface FreeformObject {
+  type: string;
+  value: ArchieMLObj;
 }
 
-function stringifyFreeformArray(array: { type: string; value: string }[]): string {
+function isFreeformArrayObject(item: unknown): item is FreeformObject {
+  return typeof item === 'object'
+    && item !== null
+    && typeof (item as FreeformObject).type === 'string'
+    && !(hasWhiteSpace((item as FreeformObject).type))
+    && (item as FreeformObject).value !== undefined
+    && (item as FreeformObject).value !== null;
+}
+
+function stringifyFreeformArray(array: FreeformObject[]): string {
   return array.map(({ type, value }, i) => {
     if (type === 'text') {
       const isLast = i === array.length - 1;

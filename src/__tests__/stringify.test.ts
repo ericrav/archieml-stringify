@@ -2,7 +2,7 @@ import archieml from 'archieml';
 import { COMMENT } from '../COMMENT';
 import { stringify } from '../stringify';
 
-const specialCases: [string, any][] = [
+const specialCases: [string, unknown][] = [
   ['', undefined],
   ['', null],
   ['', { 'keys with spaces': 'are ignored' }],
