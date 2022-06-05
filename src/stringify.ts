@@ -35,7 +35,7 @@ function stringifyKeyValue(key: string, value: unknown, { nested }: Options): st
       }
 
       if (isFreeformArrayObject(value[0])) {
-        prefix = '+';
+        prefix = `${prefix}+`;
         return stringifyFreeformArray(value.filter(isFreeformArrayObject));
       }
 

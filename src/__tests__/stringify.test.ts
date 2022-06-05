@@ -87,7 +87,7 @@ Lorem ipsum...
   ],
 ];
 
-const invertibleCases: [string, any][] = [
+const invertibleCases: [string, unknown][] = [
   ['', {}],
   ['key: value', { key: 'value' }],
   [
@@ -348,6 +348,31 @@ date: June 4th, 2008
       ],
     },
   ],
+  [
+    `[+freeform]
+* value
+[]`,
+    { freeform: [{ type: 'text', value: '* value' }] },
+  ],
+  [
+    `[array]
+name: value
+[.+freeform]
+name: value
+Text
+[]
+[]`,
+    {
+      array: [
+        {
+          name: 'value',
+          freeform: [
+            { type: 'name', value: 'value' },
+            { type: 'text', value: 'Text' },
+          ],
+        },
+      ],
+    }],
   [
     `key: value
  More value
