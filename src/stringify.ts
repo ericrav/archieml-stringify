@@ -1,4 +1,5 @@
 import { COMMENT } from './COMMENT';
+import { isParsableLine } from './utils';
 
 interface Options {
   nested?: boolean;
@@ -54,13 +55,28 @@ function isSimpleValue(value: any): boolean {
   return ['string', 'boolean', 'number'].includes(typeof value);
 }
 
-function stringifyValue(value: any) {
+function stringifyValue(value: any): string {
   const str = String(value);
-  return `${str}${str.includes('\n') ? '\n:end' : ''}`;
+
+  if (str.includes('\n')) {
+    return `${str}\n:end`;
+  }
+
+  return str;
+}
+
+function escapeArrayString(str: string): string {
+  // eslint-disable-next-line no-param-reassign
+  str = String(str);
+  if (!(str.includes('\n'))) return str;
+  return str
+    .split('\n')
+    .map((line) => (isParsableLine(line) ? `\\${line}` : line))
+    .join('\n');
 }
 
 function stringifyStringArray(array: string[]): string {
-  return array.map((str) => `* ${stringifyValue(str)}`).join('\n');
+  return array.map((str) => `* ${stringifyValue(escapeArrayString(str))}`).join('\n');
 }
 
 function stringifyComplexArray(array: Record<string, any>[]): string {

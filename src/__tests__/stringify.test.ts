@@ -382,6 +382,22 @@ more value
       },
     },
   ],
+  [
+    `[array]
+* Value 1
+\\* extra
+:end
+[]`,
+    { array: ['Value 1\n* extra'] },
+  ],
+  [
+    `[array]
+* Value1
+\\:end
+:end
+[]`,
+    { array: ['Value1\n:end'] },
+  ],
 ];
 
 const cases = [...specialCases, ...invertibleCases];
