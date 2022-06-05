@@ -4,7 +4,15 @@ describe('isParsableLine', () => {
   const cases: [string, boolean][] = [
     ['* Array', true],
     ['*Array', true],
-    [':endthis', true],
+    ['key:', true],
+    ['foobar :', false],
+    [':end', true],
+    [':endfoobar', true],
+    [':ignore', true],
+    [':skip', true],
+    ['   {scope}', true],
+    ['[scope]', true],
+    ['\\', true],
     [':notacommand', false],
   ];
 

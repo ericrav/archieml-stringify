@@ -398,6 +398,59 @@ more value
 []`,
     { array: ['Value1\n:end'] },
   ],
+  [
+    `[array]
+* value
+\\key\\:value
+:end
+[]`,
+    { array: ['value\nkey\\:value'] },
+  ],
+  [
+    `key: value
+\\* value
+:end`,
+    { key: 'value\n* value' },
+  ],
+  [
+    `key: value
+\\{scope}
+:end`,
+    { key: 'value\n{scope}' },
+  ],
+  [
+    `key: value
+\\[array]
+:end`,
+    { key: 'value\n[array]' },
+  ],
+  [
+    `key: value
+\\\\\\:end
+:end`,
+    { key: 'value\n\\\\:end' },
+  ],
+  [
+    `key: value
+\\:end
+\\:ignore
+\\:endskip
+\\:skip
+:end`,
+    { key: 'value\n:end\n:ignore\n:endskip\n:skip' },
+  ],
+  [
+    `key: value
+Lorem key2\\\\:value
+:end`,
+    { key: 'value\nLorem key2\\\\:value' },
+  ],
+  [
+    `key: value
+\\key2: value
+:end`,
+    { key: 'value\nkey2: value' },
+  ],
 ];
 
 const cases = [...specialCases, ...invertibleCases];

@@ -1,3 +1,3 @@
 export function isParsableLine(line: string): boolean {
-  return !!/^\s*(\*|:end)/.exec(line);
+  return !!/^\s*(\*|\\|:end|:skip|:ignore|({.*})|(\[.*\])|(\S+:))/.exec(line);
 }
