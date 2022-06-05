@@ -1,3 +1,4 @@
+/* eslint-disable no-tabs */
 import archieml from 'archieml';
 import { stringify } from '../stringify';
 
