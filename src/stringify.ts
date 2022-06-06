@@ -1,6 +1,6 @@
 import type { ArchieMLObj } from 'archieml';
-import { COMMENT } from './COMMENT';
-import { isParsableLine } from './utils';
+import { COMMENT, isComment, Comment } from './COMMENT';
+import { isCommandLine, isParsableLine } from './utils';
 
 interface Options {
   nested?: boolean;
@@ -20,6 +20,10 @@ export function stringify(input: unknown, options: Options = {}): string {
 }
 
 function stringifyKeyValue(key: string, value: unknown, { nested }: Options): string {
+  if (isComment(value)) {
+    return escapeComment(value);
+  }
+
   if (!key) return '';
 
   if (hasWhiteSpace(key)) {
@@ -30,11 +34,12 @@ function stringifyKeyValue(key: string, value: unknown, { nested }: Options): st
   if (Array.isArray(value)) {
     let prefix = nested ? '.' : '';
     const inner = (() => {
-      if (isSimpleValue(value[0])) {
-        return stringifyStringArray(value.filter(isSimpleValue));
+      const firstItem = value.find((item) => !isComment(item));
+      if (isSimpleValue(firstItem)) {
+        return stringifyStringArray(value);
       }
 
-      if (isFreeformArrayObject(value[0])) {
+      if (isFreeformArrayObject(firstItem)) {
         prefix = `${prefix}+`;
         return stringifyFreeformArray(value.filter(isFreeformArrayObject));
       }
@@ -66,23 +71,71 @@ function stringifyValue(value: unknown): string {
   return str;
 }
 
+function escapeLine(line: string): string {
+  return `\\${line}`;
+}
+
 function escapeMultilineString(str: string): string {
   if (!(str.includes('\n'))) return str;
   return str
     .split('\n')
-    .map((line) => (isParsableLine(line) ? `\\${line}` : line))
+    .map((line) => (isParsableLine(line) ? escapeLine(line) : line))
     .join('\n');
 }
 
-function stringifyStringArray(array: string[]): string {
-  return array.map((str) => `* ${stringifyValue(str)}`).join('\n');
+function escapeComment(comment: Comment): string {
+  const str = String(comment.value);
+
+  const lines = str.split('\n');
+  const parsable = lines.some((line) => isParsableLine(line));
+
+  if (parsable && lines.length === 1) {
+    return escapeLine(str);
+  }
+
+  if (parsable && lines.length > 1) {
+    const block = lines
+      .map((line) => (isCommandLine(line) ? escapeLine(line) : line))
+      .join('\n');
+    return `:skip\n${block}\n:endskip`;
+  }
+
+  return str;
+}
+
+function stringifyStringArray(array: unknown[]): string {
+  return array.reduce<string>((acc, val) => {
+    if (isComment(val)) {
+      const next = escapeComment(val);
+      return acc ? `${acc}\n${next}` : next;
+    }
+
+    if (isSimpleValue(val)) {
+      const next = `* ${stringifyValue(val)}`;
+      return acc ? `${acc}\n${next}` : next;
+    }
+
+    return acc;
+  }, '');
 }
 
 function stringifyComplexArray(array: Record<string, unknown>[]): string {
-  const firstKey = array[0] && Object.getOwnPropertyNames(array[0])[0];
+  const firstItem = array.find((item) => !isComment(item));
+  const firstKey = firstItem && Object.getOwnPropertyNames(firstItem)[0];
   return array
-    .filter((obj) => Object.getOwnPropertyNames(obj)[0] === firstKey)
-    .map((obj) => stringify(obj, { nested: true })).join('\n\n');
+    .reduce<string>((acc, val) => {
+    if (isComment(val)) {
+      const next = escapeComment(val);
+      return acc ? `${acc}\n${next}` : next;
+    }
+
+    if (Object.getOwnPropertyNames(val)[0] === firstKey) {
+      const next = stringify(val, { nested: true });
+      return acc ? `${acc}\n\n${next}` : next;
+    }
+
+    return acc;
+  }, '');
 }
 
 interface FreeformObject {
