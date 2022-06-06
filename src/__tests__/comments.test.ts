@@ -85,3 +85,28 @@ Not a value
 []`,
   );
 });
+
+test('comments in complex array', () => {
+  expect(stringify({
+    array: [
+      COMMENT('\nContacts'),
+      { note: COMMENT('Jeremy spoke with her on Friday, follow-up scheduled for next week'), name: 'Amanda', age: 26 },
+      { note: COMMENT('# Contact: 434-555-1234'), name: 'Tessa', age: 30 },
+      COMMENT(''),
+    ],
+  })).toEqual(
+    `[array]
+
+Contacts
+
+Jeremy spoke with her on Friday, follow-up scheduled for next week
+name: Amanda
+age: 26
+
+# Contact: 434-555-1234
+name: Tessa
+age: 30
+
+[]`,
+  );
+});

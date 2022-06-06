@@ -120,10 +120,22 @@ function stringifyStringArray(array: unknown[]): string {
 }
 
 function stringifyComplexArray(array: Record<string, unknown>[]): string {
-  const firstKey = array[0] && Object.getOwnPropertyNames(array[0])[0];
+  const firstItem = array.find((item) => !isComment(item));
+  const firstKey = firstItem && Object.getOwnPropertyNames(firstItem)[0];
   return array
-    .filter((obj) => Object.getOwnPropertyNames(obj)[0] === firstKey)
-    .map((obj) => stringify(obj, { nested: true })).join('\n\n');
+    .reduce<string>((acc, val) => {
+    if (isComment(val)) {
+      const next = escapeComment(val);
+      return acc ? `${acc}\n${next}` : next;
+    }
+
+    if (Object.getOwnPropertyNames(val)[0] === firstKey) {
+      const next = stringify(val, { nested: true });
+      return acc ? `${acc}\n\n${next}` : next;
+    }
+
+    return acc;
+  }, '');
 }
 
 interface FreeformObject {
