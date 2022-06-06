@@ -1,5 +1,5 @@
 import type { ArchieMLObj } from 'archieml';
-import { COMMENT } from './COMMENT';
+import { COMMENT, isComment, Comment } from './COMMENT';
 import { isParsableLine } from './utils';
 
 interface Options {
@@ -20,6 +20,10 @@ export function stringify(input: unknown, options: Options = {}): string {
 }
 
 function stringifyKeyValue(key: string, value: unknown, { nested }: Options): string {
+  if (isComment(value)) {
+    return escapeComment(value);
+  }
+
   if (!key) return '';
 
   if (hasWhiteSpace(key)) {
@@ -72,6 +76,12 @@ function escapeMultilineString(str: string): string {
     .split('\n')
     .map((line) => (isParsableLine(line) ? `\\${line}` : line))
     .join('\n');
+}
+
+function escapeComment(comment: Comment): string {
+  const str = String(comment.value);
+
+  return str;
 }
 
 function stringifyStringArray(array: string[]): string {

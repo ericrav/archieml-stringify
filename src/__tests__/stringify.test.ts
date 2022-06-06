@@ -1,5 +1,4 @@
 import archieml from 'archieml';
-import { COMMENT } from '../COMMENT';
 import { stringify } from '../stringify';
 
 const specialCases: [string, unknown][] = [
@@ -7,10 +6,6 @@ const specialCases: [string, unknown][] = [
   ['', null],
   ['', { 'keys with spaces': 'are ignored' }],
   ['', { 'keys with spaces': 'are ignored', '': 'no empty' }],
-  [
-    'normal: key\nkeys with spaces can be comments',
-    { normal: 'key', 'keys with spaces can be comments': COMMENT },
-  ],
   ['scope.key: value', { 'scope.key': 'value' }],
   [
     `[strings]
