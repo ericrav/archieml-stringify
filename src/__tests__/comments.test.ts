@@ -28,3 +28,21 @@ Not a value
 []`,
   );
 });
+
+test('comment at beginning simple array', () => {
+  expect(stringify({
+    array: [
+      COMMENT('Test:'),
+      'Value 1',
+      COMMENT('Not a value'),
+      'Value 2',
+    ],
+  })).toEqual(
+    `[array]
+\\Test:
+* Value 1
+Not a value
+* Value 2
+[]`,
+  );
+});

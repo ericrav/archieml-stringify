@@ -34,11 +34,12 @@ function stringifyKeyValue(key: string, value: unknown, { nested }: Options): st
   if (Array.isArray(value)) {
     let prefix = nested ? '.' : '';
     const inner = (() => {
-      if (isSimpleValue(value[0])) {
-        return stringifyStringArray(value.filter(isSimpleValue));
+      const firstItem = value.find((item) => !isComment(item));
+      if (isSimpleValue(firstItem)) {
+        return stringifyStringArray(value);
       }
 
-      if (isFreeformArrayObject(value[0])) {
+      if (isFreeformArrayObject(firstItem)) {
         prefix = `${prefix}+`;
         return stringifyFreeformArray(value.filter(isFreeformArrayObject));
       }
@@ -81,11 +82,23 @@ function escapeMultilineString(str: string): string {
 function escapeComment(comment: Comment): string {
   const str = String(comment.value);
 
-  return str;
+  return isParsableLine(str) ? `\\${str}` : str;
 }
 
-function stringifyStringArray(array: string[]): string {
-  return array.map((str) => `* ${stringifyValue(str)}`).join('\n');
+function stringifyStringArray(array: unknown[]): string {
+  return array.reduce<string>((acc, val) => {
+    if (isComment(val)) {
+      const next = escapeComment(val);
+      return acc ? `${acc}\n${next}` : next;
+    }
+
+    if (isSimpleValue(val)) {
+      const next = `* ${stringifyValue(val)}`;
+      return acc ? `${acc}\n${next}` : next;
+    }
+
+    return acc;
+  }, '');
 }
 
 function stringifyComplexArray(array: Record<string, unknown>[]): string {
