@@ -1,6 +1,6 @@
 import type { ArchieMLObj } from 'archieml';
 import { COMMENT, isComment, Comment } from './COMMENT';
-import { isParsableLine } from './utils';
+import { isCommandLine, isParsableLine } from './utils';
 
 interface Options {
   nested?: boolean;
@@ -71,18 +71,36 @@ function stringifyValue(value: unknown): string {
   return str;
 }
 
+function escapeLine(line: string): string {
+  return `\\${line}`;
+}
+
 function escapeMultilineString(str: string): string {
   if (!(str.includes('\n'))) return str;
   return str
     .split('\n')
-    .map((line) => (isParsableLine(line) ? `\\${line}` : line))
+    .map((line) => (isParsableLine(line) ? escapeLine(line) : line))
     .join('\n');
 }
 
 function escapeComment(comment: Comment): string {
   const str = String(comment.value);
 
-  return isParsableLine(str) ? `\\${str}` : str;
+  const lines = str.split('\n');
+  const parsable = lines.some((line) => isParsableLine(line));
+
+  if (parsable && lines.length === 1) {
+    return escapeLine(str);
+  }
+
+  if (parsable && lines.length > 1) {
+    const block = lines
+      .map((line) => (isCommandLine(line) ? escapeLine(line) : line))
+      .join('\n');
+    return `:skip\n${block}\n:endskip`;
+  }
+
+  return str;
 }
 
 function stringifyStringArray(array: unknown[]): string {

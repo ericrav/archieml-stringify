@@ -1,3 +1,7 @@
 export function isParsableLine(line: string): boolean {
-  return !!/^\s*(\*|\\|:end|:skip|:ignore|({.*})|(\[.*\])|(\S+:))/.exec(line);
+  return isCommandLine(line) || !!/^\s*(\*|\\|({.*})|(\[.*\])|(\S+:))/.exec(line);
+}
+
+export function isCommandLine(line: string): boolean {
+  return !!/^\s*(:end|:skip|:ignore)/.exec(line);
 }
