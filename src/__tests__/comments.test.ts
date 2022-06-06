@@ -110,3 +110,16 @@ age: 30
 []`,
   );
 });
+
+test('comments not allowed in freeform arrays', () => {
+  expect(stringify({
+    array: [
+      COMMENT('No comments'),
+      { type: 'text', value: 'Freeform text' },
+    ],
+  })).toEqual(
+    `[+array]
+Freeform text
+[]`,
+  );
+});
