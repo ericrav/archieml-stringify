@@ -5,3 +5,7 @@ export function isParsableLine(line: string): boolean {
 export function isCommandLine(line: string): boolean {
   return !!/^\s*(:end|:skip|:ignore)/.exec(line);
 }
+
+export function hasWhiteSpace(key: string) {
+  return /\s/.test(key);
+}

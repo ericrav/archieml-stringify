@@ -1,6 +1,7 @@
 import type { ArchieMLObj } from 'archieml';
 import { isComment } from './COMMENT';
 import { escapeComment, escapeMultilineString } from './escape';
+import { hasWhiteSpace } from './utils';
 
 interface Options {
   nested?: boolean;
@@ -55,6 +56,10 @@ function isSimpleValue(value: unknown): boolean {
   return ['string', 'boolean', 'number'].includes(typeof value);
 }
 
+/**
+ * Converts booleans and numbers into string value
+ * Also escapes multi-line strings
+ */
 function stringifyValue(value: unknown): string {
   const str = String(value);
 
@@ -123,8 +128,4 @@ function stringifyFreeformArray(array: FreeformObject[]): string {
 
     return stringify({ [type]: value }, { nested: true });
   }).join('\n');
-}
-
-function hasWhiteSpace(key: string) {
-  return /\s/.test(key);
 }
