@@ -32,3 +32,17 @@ export function escapeComment(comment: Comment): string {
 
   return str;
 }
+
+/**
+ * Converts booleans and numbers into string value
+ * Also escapes multi-line strings
+ */
+export function stringifyValue(value: unknown): string {
+  const str = String(value);
+
+  if (str.includes('\n')) {
+    return `${escapeMultilineString(str)}\n:end`;
+  }
+
+  return str;
+}
