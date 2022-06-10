@@ -1,5 +1,5 @@
 import type { ArchieMLObj } from 'archieml';
-import { COMMENT, isComment } from './COMMENT';
+import { isComment } from './COMMENT';
 import { escapeComment, escapeMultilineString } from './escape';
 
 interface Options {
@@ -7,28 +7,22 @@ interface Options {
 }
 
 export function stringify(input: unknown, options: Options = {}): string {
-  if (!input) return '';
+  if (!input || typeof input !== 'object') return '';
 
-  if (typeof input === 'object') {
-    return Object.entries(input)
-      .map(([key, value]) => stringifyKeyValue(key, value, options))
-      .filter((str) => str.length > 0)
-      .join('\n');
-  }
-
-  return '';
+  return Object.entries(input)
+    .map(([key, value]) => stringifyKeyValue(key, value, options))
+    .filter((str) => str !== undefined)
+    .join('\n');
 }
 
-function stringifyKeyValue(key: string, value: unknown, { nested }: Options): string {
+function stringifyKeyValue(key: string, value: unknown, { nested }: Options): string | undefined {
   if (isComment(value)) {
     return escapeComment(value);
   }
 
-  if (!key) return '';
-
-  if (hasWhiteSpace(key)) {
-    if (value === COMMENT) return key;
-    return '';
+  // ignore values that cannot be represented in ArchieML
+  if (!key || hasWhiteSpace(key)) {
+    return undefined;
   }
 
   if (Array.isArray(value)) {
