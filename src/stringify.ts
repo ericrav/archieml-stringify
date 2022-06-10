@@ -1,22 +1,32 @@
 import type { ArchieMLObj } from 'archieml';
 import { isComment } from './COMMENT';
 import { escapeComment, stringifyValue } from './escape';
-import { format as defaultFormat } from './format';
+import {
+  defaultFormat, FormatTaggedFn, formatTemplate, Formatter,
+} from './format';
 import { getFirstKey, hasWhiteSpace } from './utils';
 
-interface Options {
-  format?: any;
+export interface Options {
+  formatter?: Formatter;
+}
+
+export function stringify(input: unknown, options?: Options) {
+  return stringifyRoot(input, { format: formatTemplate(options?.formatter || defaultFormat) });
+}
+
+interface Context {
+  format: FormatTaggedFn;
   nested?: boolean;
 }
 
-export function stringify(
+function stringifyRoot(
   input: unknown,
-  { format = defaultFormat, nested }: Options = { format: defaultFormat },
+  context: Context,
 ): string {
   if (!input || typeof input !== 'object') return '';
 
   return Object.entries(input)
-    .map(([key, value]) => stringifyKeyValue(key, value, { format, nested }))
+    .map(([key, value]) => stringifyKeyValue(key, value, context))
     .filter((str) => str !== undefined)
     .join('\n');
 }
@@ -24,7 +34,7 @@ export function stringify(
 function stringifyKeyValue(
   key: string,
   value: unknown,
-  { nested, format }: Options,
+  { nested, format }: Context,
 ): string | undefined {
   if (isComment(value)) {
     return escapeComment(value);
@@ -42,14 +52,13 @@ function stringifyKeyValue(
       if (isSimpleValue(firstItem)) {
         return stringifyArray(value, {
           predicate: isSimpleValue,
-          /** --- HERE --- */
-          format: (val) => `* ${stringifyValue(val)}`,
+          format: (val) => format`* ${stringifyValue(val)}`,
         });
       }
 
       if (isFreeformArrayObject(firstItem)) {
         prefix = `${prefix}+`;
-        return stringifyFreeformArray(value.filter(isFreeformArrayObject));
+        return stringifyFreeformArray(value.filter(isFreeformArrayObject), { format });
       }
 
       const firstKey = firstItem && getFirstKey(firstItem);
@@ -57,23 +66,19 @@ function stringifyKeyValue(
         value,
         {
           predicate: (val) => typeof val === 'object' && getFirstKey(val) === firstKey,
-          /** --- HERE --- */
-          format: (val, acc) => `${acc ? '\n' : ''}${stringify(val, { nested: true })}`,
+          format: (val, acc) => `${acc ? '\n' : ''}${stringifyRoot(val, { nested: true, format })}`,
         },
       );
     })();
-    /** --- HERE --- */
-    return `[${prefix}${key}]\n${inner}${inner && '\n'}[]`;
+    return format`[${prefix}${key}]\n${inner}${inner && '\n'}[]`;
   }
 
   if (typeof value === 'object') {
-    const inner = stringify(value, { nested: true, format }) || '';
-    /** --- HERE --- */
-    return `{${nested ? '.' : ''}${key}}\n${inner}${inner && '\n'}{}`;
+    const inner = stringifyRoot(value, { nested: true, format }) || '';
+    return format`{${nested ? '.' : ''}${key}}\n${inner}${inner && '\n'}{}`;
   }
 
-  /** --- HERE --- */
-  return format(`${key}: ${stringifyValue(value)}`);
+  return format`${key}: ${stringifyValue(value)}`;
 }
 
 function isSimpleValue(value: unknown): boolean {
@@ -116,16 +121,15 @@ function isFreeformArrayObject(item: unknown): item is FreeformObject {
     && (item as FreeformObject).value !== null;
 }
 
-function stringifyFreeformArray(array: FreeformObject[]): string {
+function stringifyFreeformArray(array: FreeformObject[], { format }: Context): string {
   return array
     .map(({ type, value }, i) => {
       if (type === 'text') {
         const isLast = i === array.length - 1;
-        /** --- HERE --- */
-        return `${value}${isLast ? '' : '\n'}`;
+        return format`${stringifyValue(value)}${isLast ? '' : '\n'}`;
       }
 
-      return stringify({ [type]: value }, { nested: true });
+      return stringifyRoot({ [type]: value }, { nested: true, format });
     })
     .join('\n');
 }
