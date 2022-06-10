@@ -2,7 +2,7 @@ import type { ArchieMLObj } from 'archieml';
 import { isComment } from './COMMENT';
 import { escapeComment, stringifyValue } from './escape';
 import { format as defaultFormat } from './format';
-import { hasWhiteSpace } from './utils';
+import { getFirstKey, hasWhiteSpace } from './utils';
 
 interface Options {
   format?: any;
@@ -52,11 +52,11 @@ function stringifyKeyValue(
         return stringifyFreeformArray(value.filter(isFreeformArrayObject));
       }
 
-      const firstKey = firstItem && Object.getOwnPropertyNames(firstItem)[0];
+      const firstKey = firstItem && getFirstKey(firstItem);
       return stringifyArray(
         value,
         {
-          predicate: (val) => typeof val === 'object' && Object.getOwnPropertyNames(val)[0] === firstKey,
+          predicate: (val) => typeof val === 'object' && getFirstKey(val) === firstKey,
           /** --- HERE --- */
           format: (val, acc) => `${acc ? '\n' : ''}${stringify(val, { nested: true })}`,
         },

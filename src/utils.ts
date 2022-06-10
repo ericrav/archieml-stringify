@@ -9,3 +9,7 @@ export function isCommandLine(line: string): boolean {
 export function hasWhiteSpace(key: string) {
   return /\s/.test(key);
 }
+
+export function getFirstKey(obj: unknown): string {
+  return Object.getOwnPropertyNames(obj)[0];
+}
