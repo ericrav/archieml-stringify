@@ -11,6 +11,10 @@ test('format', () => {
         { name: 'Bob' },
         { name: 'Bill' },
       ],
+      freeform: [
+        { type: 'text', value: 'Some multi-line\ntext' },
+        { type: 'kicker', value: 'Check it out!' },
+      ],
     },
   };
   stringify(obj, { formatter });
@@ -111,6 +115,33 @@ test('format', () => {
         key: 'array',
         value: obj.scope.array,
         path: ['scope', 'array'],
+        parent: obj.scope,
+      },
+    ],
+    [
+      ['Some multi-line\ntext\n:end\n'],
+      {
+        key: 0,
+        value: obj.scope.freeform[0],
+        path: ['scope', 'freeform', 0],
+        parent: obj.scope.freeform,
+      },
+    ],
+    [
+      ['', 'kicker', ': ', 'Check it out!', ''],
+      {
+        key: 1,
+        value: obj.scope.freeform[1],
+        path: ['scope', 'freeform', 1],
+        parent: obj.scope.freeform,
+      },
+    ],
+    [
+      ['[', '.+freeform', ']\n', expect.any(String), '[]'],
+      {
+        key: 'freeform',
+        value: obj.scope.freeform,
+        path: ['scope', 'freeform'],
         parent: obj.scope,
       },
     ],

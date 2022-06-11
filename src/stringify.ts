@@ -143,11 +143,20 @@ function stringifyFreeformArray(array: FreeformObject[], { format, path }: Conte
     .map(({ type, value }, i) => {
       if (type === 'text') {
         const isLast = i === array.length - 1;
-        return format({ path: path.concat(i), parent: array })`${stringifyValue(value)}${isLast ? '' : '\n'}`;
+        const text = `${stringifyValue(value)}${isLast ? '' : '\n'}`;
+        return format({
+          key: i, value: { type, value }, path: path.concat(i), parent: array,
+        })([text] as unknown as TemplateStringsArray); // directly call tagged template to force array of 1 string
       }
 
-      return stringifyRoot({ [type]: value }, {
-        nested: true, format, parent: array, path: path.concat(i),
+      return stringifyKeyValue(type, value, {
+        nested: true,
+        // override key-value format with freeform object index and value
+        format: () => format({
+          key: i, value: { type, value }, path: path.concat(i), parent: array,
+        }),
+        parent: array,
+        path: path.concat(i),
       });
     })
     .join('\n');
