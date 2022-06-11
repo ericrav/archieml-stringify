@@ -59,13 +59,13 @@ function stringifyKeyValue(
 
   if (Array.isArray(value)) {
     let prefix = nested ? '.' : '';
-    const inner = (() => {
+    let inner = (() => {
       const firstItem = value.find((item) => !isComment(item));
       if (isSimpleValue(firstItem)) {
         return stringifyArray(value, {
           predicate: isSimpleValue,
-          format: (val) => format({
-            key, value, path, parent: value,
+          format: (val, i) => format({
+            key: i, value: val, path: path.concat(i), parent: value,
           })`* ${stringifyValue(val)}`,
         });
       }
@@ -81,7 +81,7 @@ function stringifyKeyValue(
         {
           predicate: (val) => typeof val === 'object' && getFirstKey(val) === firstKey,
           format: (val, i) => format({
-            key, value: val, path: path.concat(i), parent: value,
+            key: i, value: val, path: path.concat(i), parent: value,
           })`${stringifyRoot(val, {
             nested: true, format, parent: val, path: path.concat(i),
           })}`,
@@ -89,9 +89,11 @@ function stringifyKeyValue(
       );
     })();
 
+    inner = inner ? `${inner}\n` : inner;
+    const scope = `${prefix}${key}`;
     return format({
       key, value, path, parent,
-    })`[${prefix}${key}]\n${inner}${inner && '\n'}[]`;
+    })`[${scope}]\n${inner}[]`;
   }
 
   if (typeof value === 'object') {

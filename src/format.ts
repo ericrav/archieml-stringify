@@ -1,10 +1,11 @@
+import { isComment } from './COMMENT';
 import { isFreeformArrayObject } from './utils';
 
 interface FormatterContext {
   key?: string | number;
   value?: unknown;
   path: (string | number)[];
-  parent: any;
+  parent: unknown;
 }
 
 export type Formatter = (values: string[], context: FormatterContext) => string;
@@ -13,8 +14,14 @@ export type FormatTaggedFn = (context: FormatterContext) =>(
   (strings: TemplateStringsArray, ...expressions: string[]) => string
 );
 
-export const defaultFormat: Formatter = (strings, { value, parent, path }) => {
-  if (Array.isArray(parent) && typeof parent[0] === 'object' && !isFreeformArrayObject(parent[0])) {
+function isComplexArray(value: unknown): boolean {
+  if (!Array.isArray(value)) return false;
+  const firstItem = value.find((item) => !isComment(item));
+  return typeof firstItem === 'object' && !isFreeformArrayObject(firstItem);
+}
+
+export const defaultFormat: Formatter = (strings, { parent, path }) => {
+  if (isComplexArray(parent)) {
     const arrayIndex = path[path.length - 1];
     if (arrayIndex > 0) {
       return `\n${strings.join('')}`;
