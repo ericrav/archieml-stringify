@@ -5,12 +5,13 @@ test('format', () => {
   const obj = {
     key: 'value',
     strings: ['A', 'B', 'C'],
-    // scope: {
-    //   array: [
-    //     { name: 'Bob' },
-    //     { name: 'Bill' },
-    //   ],
-    //   key2: 'value',
+    scope: {
+      nested: {},
+      array: [
+        { name: 'Bob' },
+        { name: 'Bill' },
+      ],
+    },
   };
   stringify(obj, { formatter });
   expect(formatter.mock.calls).toEqual([
@@ -56,6 +57,69 @@ test('format', () => {
         key: 'strings',
         value: obj.strings,
         path: ['strings'],
+        parent: obj,
+      },
+    ],
+    [
+      ['{', '.nested', '}\n', '', '{}'],
+      {
+        key: 'nested',
+        value: obj.scope.nested,
+        path: ['scope', 'nested'],
+        parent: obj.scope,
+      },
+    ],
+    [
+      ['', 'name', ': ', 'Bob', ''],
+      {
+        key: 'name',
+        value: obj.scope.array[0].name,
+        path: ['scope', 'array', 0, 'name'],
+        parent: obj.scope.array[0],
+      },
+    ],
+    [
+      ['', 'name: Bob', ''],
+      {
+        key: 0,
+        value: obj.scope.array[0],
+        path: ['scope', 'array', 0],
+        parent: obj.scope.array,
+      },
+    ],
+    [
+      ['', 'name', ': ', 'Bill', ''],
+      {
+        key: 'name',
+        value: obj.scope.array[1].name,
+        path: ['scope', 'array', 1, 'name'],
+        parent: obj.scope.array[1],
+      },
+    ],
+    [
+      ['', 'name: Bill', ''],
+      {
+        key: 1,
+        value: obj.scope.array[1],
+        path: ['scope', 'array', 1],
+        parent: obj.scope.array,
+      },
+    ],
+    [
+      ['[', '.array', ']\n', 'name: Bob\nname: Bill\n', '[]'],
+      {
+        key: 'array',
+        value: obj.scope.array,
+        path: ['scope', 'array'],
+        parent: obj.scope,
+      },
+    ],
+    [
+      ['{', 'scope', '}\n', expect.any(String), '{}'],
+      {
+        key: 'scope',
+        value: obj.scope,
+        path: ['scope'],
         parent: obj,
       },
     ],

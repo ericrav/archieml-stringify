@@ -97,10 +97,14 @@ function stringifyKeyValue(
   }
 
   if (typeof value === 'object') {
-    const inner = stringifyRoot(value, {
+    let inner = stringifyRoot(value, {
       nested: true, format, parent: value, path,
     }) || '';
-    return format({ parent, path })`{${nested ? '.' : ''}${key}}\n${inner}${inner && '\n'}{}`;
+    const scope = `${nested ? '.' : ''}${key}`;
+    inner = inner ? `${inner}\n` : inner;
+    return format({
+      key, value, parent, path,
+    })`{${scope}}\n${inner}{}`;
   }
 
   return format({
