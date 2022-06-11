@@ -142,8 +142,7 @@ function stringifyFreeformArray(array: FreeformObject[], { format, path }: Conte
   return array
     .map(({ type, value }, i) => {
       if (type === 'text') {
-        const isLast = i === array.length - 1;
-        const text = `${stringifyValue(value)}${isLast ? '' : '\n'}`;
+        const text = `${stringifyValue(value)}`;
         return format({
           key: i, value: { type, value }, path: path.concat(i), parent: array,
         })([text] as unknown as TemplateStringsArray); // directly call tagged template to force array of 1 string

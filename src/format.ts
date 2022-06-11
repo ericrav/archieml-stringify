@@ -1,5 +1,6 @@
-import { isComment } from './COMMENT';
-import { isFreeformArrayObject } from './utils';
+import {
+  FreeformObject, isComplexArray, isFreeformArrayObject,
+} from './utils';
 
 interface FormatterContext {
   key?: string | number;
@@ -14,19 +15,22 @@ export type FormatTaggedFn = (context: FormatterContext) =>(
   (strings: TemplateStringsArray, ...expressions: string[]) => string
 );
 
-function isComplexArray(value: unknown): boolean {
-  if (!Array.isArray(value)) return false;
-  const firstItem = value.find((item) => !isComment(item));
-  return typeof firstItem === 'object' && !isFreeformArrayObject(firstItem);
-}
-
-export const defaultFormat: Formatter = (strings, { parent, path }) => {
+export const defaultFormat: Formatter = (strings, { parent, path, value }) => {
   if (isComplexArray(parent)) {
     const arrayIndex = path[path.length - 1];
     if (arrayIndex > 0) {
       return `\n${strings.join('')}`;
     }
   }
+
+  if (isFreeformArrayObject(value)) {
+    const arrayIndex = path[path.length - 1];
+    const isLast = arrayIndex === (parent as FreeformObject[]).length - 1;
+    if (value.type === 'text' && !isLast) {
+      return `${strings.join('')}\n`;
+    }
+  }
+
   return strings.join('');
 };
 

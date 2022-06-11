@@ -119,7 +119,7 @@ test('format', () => {
       },
     ],
     [
-      ['Some multi-line\ntext\n:end\n'],
+      ['Some multi-line\ntext\n:end'],
       {
         key: 0,
         value: obj.scope.freeform[0],
