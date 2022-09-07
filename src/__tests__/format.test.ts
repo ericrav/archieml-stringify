@@ -1,9 +1,11 @@
+import { COMMENT } from '../COMMENT';
 import { stringify } from '../stringify';
 
 test('format', () => {
   const formatter = jest.fn((strings) => strings.join(''));
   const obj = {
     key: 'value',
+    comment: COMMENT('A comment!'),
     strings: ['A', 'B', 'C'],
     scope: {
       nested: {},
@@ -25,6 +27,15 @@ test('format', () => {
         key: 'key',
         value: obj.key,
         path: ['key'],
+        parent: obj,
+      },
+    ],
+    [
+      ['A comment!'],
+      {
+        key: 'comment',
+        value: COMMENT('A comment!'),
+        path: ['comment'],
         parent: obj,
       },
     ],

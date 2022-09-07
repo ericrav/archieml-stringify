@@ -46,16 +46,18 @@ function stringifyKeyValue(
     nested, format, parent, path: parentPath,
   }: Context,
 ): string | undefined {
+  const path = parentPath.concat(key);
+
   if (isComment(value)) {
-    return escapeComment(value);
+    return format({
+      key, value, parent, path,
+    })([escapeComment(value)] as unknown as TemplateStringsArray);
   }
 
   // ignore values that cannot be represented in ArchieML
   if (!key || hasWhiteSpace(key)) {
     return undefined;
   }
-
-  const path = parentPath.concat(key);
 
   if (Array.isArray(value)) {
     let prefix = nested ? '.' : '';
