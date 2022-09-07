@@ -1,117 +1,138 @@
-import type { ArchieMLObj } from 'archieml';
-import { COMMENT, isComment, Comment } from './COMMENT';
-import { isCommandLine, isParsableLine } from './utils';
+/* eslint-disable max-len */
+import { isComment } from './COMMENT';
+import { escapeComment, stringifyValue } from './escape';
+import {
+  defaultFormat, FormatTaggedFn, formatTemplate, Formatter,
+} from './format';
+import {
+  FreeformObject, getFirstKey, hasWhiteSpace, isFreeformArrayObject,
+} from './utils';
 
-interface Options {
+export interface Options {
+  formatter?: Formatter;
+}
+
+export function stringify(input: unknown, options?: Options) {
+  return stringifyRoot(input, {
+    format: formatTemplate(options?.formatter || defaultFormat),
+    parent: input,
+    path: [],
+  });
+}
+
+interface Context {
+  format: FormatTaggedFn;
   nested?: boolean;
+  parent: any;
+  path: (string | number)[];
 }
 
-export function stringify(input: unknown, options: Options = {}): string {
-  if (!input) return '';
+function stringifyRoot(
+  input: unknown,
+  context: Context,
+): string {
+  if (!input || typeof input !== 'object') return '';
 
-  if (typeof input === 'object') {
-    return Object.entries(input)
-      .map(([key, value]) => stringifyKeyValue(key, value, options))
-      .filter((str) => str.length > 0)
-      .join('\n');
-  }
-
-  return '';
+  return Object.entries(input)
+    .map(([key, value]) => stringifyKeyValue(key, value, context))
+    .filter((str) => str !== undefined)
+    .join('\n');
 }
 
-function stringifyKeyValue(key: string, value: unknown, { nested }: Options): string {
+function stringifyKeyValue(
+  key: string,
+  value: unknown,
+  {
+    nested, format, parent, path: parentPath,
+  }: Context,
+): string | undefined {
+  const path = parentPath.concat(key);
+
   if (isComment(value)) {
-    return escapeComment(value);
+    return format({
+      key, value, parent, path,
+    })([escapeComment(value)] as unknown as TemplateStringsArray);
   }
 
-  if (!key) return '';
-
-  if (hasWhiteSpace(key)) {
-    if (value === COMMENT) return key;
-    return '';
+  // ignore values that cannot be represented in ArchieML
+  if (!key || hasWhiteSpace(key)) {
+    return undefined;
   }
 
   if (Array.isArray(value)) {
     let prefix = nested ? '.' : '';
-    const inner = (() => {
+    let inner = (() => {
       const firstItem = value.find((item) => !isComment(item));
       if (isSimpleValue(firstItem)) {
-        return stringifyStringArray(value);
+        return stringifyArray(value, {
+          predicate: isSimpleValue,
+          format: (val, i) => format({
+            key: i, value: val, path: path.concat(i), parent: value,
+          })`* ${stringifyValue(val)}`,
+        });
       }
 
       if (isFreeformArrayObject(firstItem)) {
         prefix = `${prefix}+`;
-        return stringifyFreeformArray(value.filter(isFreeformArrayObject));
+        return stringifyFreeformArray(value.filter(isFreeformArrayObject), { format, parent: value, path });
       }
 
-      return stringifyComplexArray(value.filter((item) => typeof item === 'object'));
+      const firstKey = firstItem && getFirstKey(firstItem);
+      return stringifyArray(
+        value,
+        {
+          predicate: (val) => typeof val === 'object' && getFirstKey(val) === firstKey,
+          format: (val, i) => format({
+            key: i, value: val, path: path.concat(i), parent: value,
+          })`${stringifyRoot(val, {
+            nested: true, format, parent: val, path: path.concat(i),
+          })}`,
+        },
+      );
     })();
-    return `[${prefix}${key}]\n${inner}${inner && '\n'}[]`;
+
+    inner = inner ? `${inner}\n` : inner;
+    const scope = `${prefix}${key}`;
+    return format({
+      key, value, path, parent,
+    })`[${scope}]\n${inner}[]`;
   }
 
   if (typeof value === 'object') {
-    const inner = stringify(value, { nested: true }) || '';
-    return `{${nested ? '.' : ''}${key}}\n${inner}${inner && '\n'}{}`;
+    let inner = stringifyRoot(value, {
+      nested: true, format, parent: value, path,
+    }) || '';
+    const scope = `${nested ? '.' : ''}${key}`;
+    inner = inner ? `${inner}\n` : inner;
+    return format({
+      key, value, parent, path,
+    })`{${scope}}\n${inner}{}`;
   }
 
-  return `${key}: ${stringifyValue(value)}`;
+  return format({
+    key, value, parent, path,
+  })`${key}: ${stringifyValue(value)}`;
 }
 
 function isSimpleValue(value: unknown): boolean {
   return ['string', 'boolean', 'number'].includes(typeof value);
 }
 
-function stringifyValue(value: unknown): string {
-  const str = String(value);
-
-  if (str.includes('\n')) {
-    return `${escapeMultilineString(str)}\n:end`;
-  }
-
-  return str;
-}
-
-function escapeLine(line: string): string {
-  return `\\${line}`;
-}
-
-function escapeMultilineString(str: string): string {
-  if (!(str.includes('\n'))) return str;
-  return str
-    .split('\n')
-    .map((line) => (isParsableLine(line) ? escapeLine(line) : line))
-    .join('\n');
-}
-
-function escapeComment(comment: Comment): string {
-  const str = String(comment.value);
-
-  const lines = str.split('\n');
-  const parsable = lines.some((line) => isParsableLine(line));
-
-  if (parsable && lines.length === 1) {
-    return escapeLine(str);
-  }
-
-  if (parsable && lines.length > 1) {
-    const block = lines
-      .map((line) => (isCommandLine(line) ? escapeLine(line) : line))
-      .join('\n');
-    return `:skip\n${block}\n:endskip`;
-  }
-
-  return str;
-}
-
-function stringifyStringArray(array: unknown[]): string {
-  return array.reduce<string>((acc, val) => {
+function stringifyArray(
+  array: unknown[],
+  { predicate, format }: {
+    predicate: (item: unknown) => boolean;
+    format: (item: unknown, index: number) => string;
+  },
+): string {
+  return array.reduce<string>((acc, val, i) => {
     if (isComment(val)) {
       const next = escapeComment(val);
       return acc ? `${acc}\n${next}` : next;
     }
 
-    if (isSimpleValue(val)) {
-      const next = `* ${stringifyValue(val)}`;
+    if (predicate(val)) {
+      const next = format(val, i);
       return acc ? `${acc}\n${next}` : next;
     }
 
@@ -119,50 +140,25 @@ function stringifyStringArray(array: unknown[]): string {
   }, '');
 }
 
-function stringifyComplexArray(array: Record<string, unknown>[]): string {
-  const firstItem = array.find((item) => !isComment(item));
-  const firstKey = firstItem && Object.getOwnPropertyNames(firstItem)[0];
+function stringifyFreeformArray(array: FreeformObject[], { format, path }: Context): string {
   return array
-    .reduce<string>((acc, val) => {
-    if (isComment(val)) {
-      const next = escapeComment(val);
-      return acc ? `${acc}\n${next}` : next;
-    }
+    .map(({ type, value }, i) => {
+      if (type === 'text') {
+        const text = `${stringifyValue(value)}`;
+        return format({
+          key: i, value: { type, value }, path: path.concat(i), parent: array,
+        })([text] as unknown as TemplateStringsArray); // directly call tagged template to force array of 1 string
+      }
 
-    if (Object.getOwnPropertyNames(val)[0] === firstKey) {
-      const next = stringify(val, { nested: true });
-      return acc ? `${acc}\n\n${next}` : next;
-    }
-
-    return acc;
-  }, '');
-}
-
-interface FreeformObject {
-  type: string;
-  value: ArchieMLObj;
-}
-
-function isFreeformArrayObject(item: unknown): item is FreeformObject {
-  return typeof item === 'object'
-    && item !== null
-    && typeof (item as FreeformObject).type === 'string'
-    && !(hasWhiteSpace((item as FreeformObject).type))
-    && (item as FreeformObject).value !== undefined
-    && (item as FreeformObject).value !== null;
-}
-
-function stringifyFreeformArray(array: FreeformObject[]): string {
-  return array.map(({ type, value }, i) => {
-    if (type === 'text') {
-      const isLast = i === array.length - 1;
-      return `${value}${isLast ? '' : '\n'}`;
-    }
-
-    return stringify({ [type]: value }, { nested: true });
-  }).join('\n');
-}
-
-function hasWhiteSpace(key: string) {
-  return /\s/.test(key);
+      return stringifyKeyValue(type, value, {
+        nested: true,
+        // override key-value format with freeform object index and value
+        format: () => format({
+          key: i, value: { type, value }, path: path.concat(i), parent: array,
+        }),
+        parent: array,
+        path: path.concat(i),
+      });
+    })
+    .join('\n');
 }
