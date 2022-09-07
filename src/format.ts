@@ -2,7 +2,7 @@ import {
   FreeformObject, isComplexArray, isFreeformArrayObject,
 } from './utils';
 
-interface FormatterContext {
+export interface FormatterContext {
   key?: string | number;
   value?: unknown;
   path: (string | number)[];
